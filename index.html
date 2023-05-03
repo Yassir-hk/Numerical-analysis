@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Numerical analysis</title>
+	<link rel="stylesheet" href="style.css">
+	<script src="algorithms.js"></script>
+</head>
+
+<body>
+	<section>
+		<div class="container">
+			<h2>Computational inputs</h2>
+			<div class="settings">
+				<p>Number of equations &nbsp;:&nbsp;
+					<span class="choose-equations-number">
+						<button onClick="changeEquationNumber(1)">+</button>
+						&nbsp;<span id="equationNumber">0</span>&nbsp;
+						<button onClick="changeEquationNumber(-1)">-</button>
+					</span>
+				</p>
+				<select id="computationMethod">
+					<option value="1">Gauss elemination method</option>
+					<option value="2">Lu decomposition method</option>
+					<option value="3">Jacobi method</option>
+				</select>
+			</div>
+			<div id="equationsContainer"></div>
+			<button class="compute" onClick="compute()">Compute</button>
+		</div>
+		<div class="container container-2">
+			<h2>Result</h2>
+			<div id="resultContainer"></div>
+		</div>
+	</section>
+</body>
+</html>
