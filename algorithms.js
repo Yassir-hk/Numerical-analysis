@@ -1,14 +1,14 @@
 /**************************************************************************************************
- *                                     Handlers and utilities                                     *
+ *                                                   Handlers                                     *
  **************************************************************************************************/
 
-const regexVar = /^[a-zA-Z]+$/;
-const regexNum = /^[\d.]+$/;
 const regexOpt = /^[+-]$/;
+const regexNum = /^[\d.]+$/;
+const regexVar = /^[a-zA-Z]+$/;
 
 /**
  * Function to change the number of equations.
- * @param {Number | Boolean} increment
+ * @param {Number|Boolean} increment
  */
 
 function changeEquationNumber(increment) {
@@ -43,7 +43,7 @@ function createEquation(equationNumber) {
   equationInput.type = "text";
   equation.className = "equation";
   equationInput.className = "equationInput equation" + equationNumber;
-  
+
   equation.appendChild(equationName);
   equation.appendChild(equationName);
   equation.appendChild(equationInput);
@@ -53,7 +53,7 @@ function createEquation(equationNumber) {
 
 /**
  * Function to check if a given equation is following the correct format.
- * @param {Array | null} equation
+ * @param {Array} equation
  * @returns {Boolean}
  */
 
@@ -63,14 +63,14 @@ function isValidEquation(equation) {
 
   for (let char of equation) {
     const isValidNum = regexNum.test(char) && (regexOpt.test(lastChar) || regexNum.test(lastChar) || lastChar == false);
-    const isValidOpt = regexOpt.test(char) && regexVar.test(lastChar);
+    const isValidOpt = regexOpt.test(char) && (regexVar.test(lastChar) || lastChar == false || lastChar == '=');
     const isValidVar = regexVar.test(char) && regexNum.test(lastChar);
 
     if (!isValidNum && !isValidOpt && !isValidVar) {
       return false;
     }
 
-    countEquales += (char === '=');
+    countEquales += (char == '=');
     lastChar = char;
   }
 
@@ -79,20 +79,22 @@ function isValidEquation(equation) {
 
 /**
  * Function to verity the equations input.
- * @returns {Array | boolean}
+ * @returns {Array|boolean}
  */
 
-function fetchSystemData() {
+function fetchSystem() {
   const equations = Array.from(document.getElementsByClassName("equationInput"));
   const variablesOfSystemSet = new Set();
-  const systemData = [];
+  const system = [];
 
   for (let equation of equations) {
     const equationString = equation.value.replace(/\s+/g, '');
 
+    /*
     if (!isValidEquation(equationString)) {
       return false;
     }
+    */
 
     const systemEquation = {};
     let coefficient = '', operator = '';
@@ -102,15 +104,9 @@ function fetchSystemData() {
         coefficient += char;
       }
       else if (regexVar.test(char)) {
-        if (!variablesOfSystemSet.has(char)) {
-          variablesOfSystemSet.add(char);
-        }
-        if (!systemEquation[char]) {
-          systemEquation[char] = 0;
-        }
-        if (coefficient.length == 0) {
-          coefficient = '1';
-        }
+        if (variablesOfSystemSet.has(char) == false) variablesOfSystemSet.add(char);
+        if (!systemEquation[char]) systemEquation[char] = 0;
+        if (coefficient.length == 0) coefficient = '1';
 
         systemEquation[char] += parseFloat(operator + coefficient);
         coefficient = '';
@@ -123,7 +119,8 @@ function fetchSystemData() {
     if (coefficient.length) {
       systemEquation['='] = parseFloat((operator == '=' ? '' : operator) + coefficient);
     }
-    systemData.push(systemEquation);
+
+    system.push(systemEquation);
   }
 
   // Check if the number of variables is greater than the number of equations
@@ -135,7 +132,7 @@ function fetchSystemData() {
   const variablesOfSystemArray = [...variablesOfSystemSet].sort();
   const matrixOfSystem = [];
 
-  for (let systemEquation of systemData) {
+  for (let systemEquation of system) {
     const equationCoefficients = [];
 
     for (let variable of variablesOfSystemArray) {
@@ -158,15 +155,15 @@ function fetchSystemData() {
 
 /**
  * Function that process the input equations and use the selected method to provide the resultVector.
- * @returns {Boolean | void}
+ * @returns {Boolean|void}
  */
 
 function compute() {
-  const systemData = fetchSystemData();
+  const system = fetchSystem();
   const computationMethod = parseInt(document.getElementById("computationMethod").value);
 
   // Case of invalid inputs or invalid system
-  if (systemData == false) {
+  if (system == false) {
     alert("This system cannot be processed");
     return false;
   }
@@ -177,16 +174,15 @@ function compute() {
   // Use the selected method
   switch (computationMethod) {
     case 1: {
-      const resultVectorData = gaussElemination(systemData[0]);
-      writeresultVector(resultVectorData, systemData[1]);
+      writeResult(gaussElemination(system[0]), system[1]);
       break;
     }
     case 2: {
-      const resultVectorData = luDecomposition(systemData[0]);
-      writeresultVector(resultVectorData, systemData[1]);
+      writeResult(luDecomposition(system[0]), system[1]);
       break;
     }
     case 3: {
+      writeResult(jacobiMethod(system[0]), system[0]);
       break;
     }
   }
@@ -194,27 +190,89 @@ function compute() {
 
 /**
  * Function to write the solution of the system in the resultVector container.
- * @param {Array | Boolean} systemSolution
+ * @param {Array | Boolean} resultVector
  * @param {Array} variablesOfSystem
  * @returns {Boolean}
  */
 
-function writeresultVector(systemSolution, variablesOfSystem) {
-  const resultVectorContainer = document.getElementById("resultVectorContainer");
+function writeResult(resultVector, variablesOfSystem) {
+  const resultVectorContainer = document.getElementById("resultContainer");
 
-  if (systemSolution == false) {
+  if (resultVector == false) {
     resultVectorContainer.innerHTML = "This system has infinity of solutions or no solution.";
     return false;
   }
 
   let resultVectorContent = '';
-  let currtVariable = 0;
+  let currentVariable = 0;
 
-  for (let value of systemSolution) {
-    resultVectorContent += variablesOfSystem[currtVariable++] + " = " + value + "<br><br>";
+  for (let value of resultVector) {
+    resultVectorContent += variablesOfSystem[currentVariable++] + " = " + value + "<br><br>";
   }
 
   resultVectorContainer.innerHTML = resultVectorContent;
+}
+
+/**************************************************************************************************
+ *                                      Matrice functions                                         *
+ **************************************************************************************************/
+
+/**
+ * Function to multiply two matrices
+ * @param {Array} firstMatrix
+ * @param {Array} secondMatrix
+ * @returns {Array|Boolean}
+ */
+
+function multiplyTwoMatrices(firstMatrix, secondMatrix) {
+  if (firstMatrix[0].length != secondMatrix.length) {
+    return false;
+  }
+
+  const numberOfRows = firstMatrix.length;
+  const numberOfCols = secondMatrix[0].length;
+  const resultMatrix = new Array(numberOfRows);
+
+  for (let i = 0; i < numberOfRows; i++) {
+    resultMatrix[i] = new Array(numberOfCols);
+
+    for (let j = 0; j < numberOfCols; j++) {
+      let sum = 0;
+
+      for (let k = 0; k < numberOfCols; k++) {
+        resultMatrix[i][j] += (firstMatrix[i][k] * secondMatrix[k][j]);
+      }
+    }
+  }
+
+  return resultMatrix;
+}
+
+/**
+ * Function to calculate the addition of two matrices
+ * @param {Array} firstMatrix
+ * @param {Array} secondMatrix
+ * @returns {Array|Boolean}
+ */
+
+function addTwoMatrices(firstMatrix, secondMatrix) {
+  if (firstMatrix.length != secondMatrix.length || firstMatrix[0].length != secondMatrix.length) {
+    return false;
+  }
+
+  const numberOfRows = firstMatrix.length;
+  const numberOfCols = firstMatrix[0].length;
+  const resultMatrix = new Array(numberOfRows);
+
+  for (let i = 0; i < numberOfRows; i++) {
+    resultMatrix[i] = new Array(numberOfCols);
+
+    for (let j = 0; j < numberOfCols; j++) {
+      resultMatrix[i][j] = firstMatrix[i][j] + secondMatrix[i][j];
+    }
+  }
+
+  return resultMatrix;
 }
 
 /**************************************************************************************************
@@ -227,7 +285,7 @@ function writeresultVector(systemSolution, variablesOfSystem) {
  * 2) solve the system
  * 
  * @param {Array} system 
- * @returns {Array | Boolean}
+ * @returns {Array|Boolean}
  */
 
 function gaussElemination(system) {
@@ -264,6 +322,7 @@ function gaussElemination(system) {
 /**
  * Function that solve the upper triangular system
  * @param {Array} system
+ * @returns {Array|Boolean}
  */
 
 function upperTriangularSystemSolver(system) {
@@ -275,7 +334,7 @@ function upperTriangularSystemSolver(system) {
   }
 
   let resultVector = new Array(numberOfRows);
-  
+
   for (let i = numberOfRows - 1; i >= 0; i--) {
     resultVector[i] = system[i][numberOfCols - 1];
 
@@ -291,7 +350,8 @@ function upperTriangularSystemSolver(system) {
 
 /**
  * Function that solve the lower triangular system
- * @param {Array} system 
+ * @param {Array} system
+ * @returns {Array|Boolean}
  */
 
 function lowerTriangularSystemSolver(system) {
@@ -339,7 +399,7 @@ function luDecomposition(system) {
     for (let j = 0; j < dimension; j++) {
       matrixRow.push((i == j) ? 1 : 0);
     }
-    
+
     lowerTriangularMatrix.push(matrixRow);
   }
 
@@ -368,7 +428,7 @@ function luDecomposition(system) {
       }
     }
   }
-  
+
   /** 
    * We know that ax = b, after decompose a into l and u matrices, we get lux = b
    * Supose that ux = y and ly = b.
@@ -398,54 +458,64 @@ function luDecomposition(system) {
  */
 
 function jacobiMethod(system) {
-  if (isApplicableJacobiMethod(system) == false) return false;
+  if (isDiagonallyDominanteMatrix(system) == false) {
+    return false;
+  }
 
   const numberOfRows = system.length;
   const numberOfCols = system[0].length;
-  const resultVector = new Array(numberOfRows);
-}
+  const diagonalMatrix = new Array(numberOfRows);
+  const reminderMatrix = new Array(numberOfRows);
+  let resultVector = new Array(numberOfRows).fill(0);
 
-/**
- * Method to check if the system is a valid jacobi system
- * @param {Array} system 
- * @returns {Boolean}
- */
-
-function isApplicableJacobiMethod(system) {
-  const numberOfRows = system.length;
-
+  // Create a diagonal & reminder matrices
   for (let i = 0; i < numberOfRows; i++) {
-    if (system[i][i] == 0) {
-      return false;
+    diagonalMatrix[i] = new Array(numberOfRows);
+    reminderMatrix[i] = new Array(numberOfRows);
+
+    for (let j = 0; j < numberOfRows; j++) {
+      diagonalMatrix[i][j] = (i == j ? system[i][j] : 0);
+      reminderMatrix[i][j] = (i == j ? 0 : system[i][j]);
     }
   }
 
-  return true;
+  let iterationLimit = 1e3 + 1;
+  let estimationError = 1e3;
+
+  while (estimationError >= 1 && iterationLimit--) {
+    const tempResultVector = new Array(numberOfRows);
+    const multiplyedSystemMatrix = multiplyTwoMatrices(reminderMatrix, resultVector);
+
+    // Calculate adjustment
+    for (let i = 0; i < numberOfRows; i++) {
+      tempResultVector[i] = (system[i][numberOfCols - 1] - multiplyedSystemMatrix[i]) / diagonalMatrix[i][i];
+      estimationError = Math.max(estimationError, Math.abs(tempResultVector[i] / resultVector[i]));
+    }
+    
+    resultVector = addTwoMatrices(resultVector, tempResultVector);
+  }
+
+  return resultVector;
 }
 
 /**
- * Function to check wethere the system matrix is strictlly dominante
+ * Function to check wethere the system matrix is strictlly diagonally dominante
  * @param {Array}
  * @returns {Boolean}
  */
 
-function isStrictlyDominante(system) {
+function isDiagonallyDominanteMatrix(system) {
   const dimension = system.length;
 
   for (let i = 0; i < dimension; i++) {
     const compared = Math.abs(system[i][i]);
-    var sum1 = system[i][0], isGreater1 = false;
-    var sum2 = system[0][i], isGreater2 = false;
+    var rowSum = 0;
 
-    for (let j = 1; j < dimension && !isGreater1 && !isGreater2; j++) {
-      sum1 += i != j ? Math.abs(system[i][j]):0;
-      sum2 += i != j ? Math.abs(system[j][i]):0;
-      isGreater1 = sum1 >= compared;
-      isGreater2 = sum2 >= compared;
-    }
-
-    if (isGreater1 && isGreater2) {
-      return false;
+    for (let j = 0; j < dimension; j++) {
+      rowSum += (i != j ? Math.abs(system[i][j]):0);
+      if (rowSum >= compared) {
+        return false;
+      }
     }
   }
 
