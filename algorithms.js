@@ -182,7 +182,11 @@ function compute() {
       break;
     }
     case 3: {
-      writeResult(jacobiMethod(system[0]), system[0]);
+      writeResult(jacobiMethod(system[0]), system[1]);
+      break;
+    }
+    case 4:{
+      writeResult(gaussSeidelMethod(system[0], system[1]));
       break;
     }
   }
@@ -273,6 +277,43 @@ function addTwoMatrices(firstMatrix, secondMatrix) {
   }
 
   return resultMatrix;
+}
+
+/**
+ * Function to check wethere the system matrix is strictlly diagonally dominante
+ * the function check whether the coefficients matrix is strictly diagonally dominante (while converge)
+ * 
+ * @param {Array}
+ * @returns {Boolean}
+ */
+
+function isStrictlyDiagonallyDominant(system) {
+  const dimension = system.length;
+
+  for (let i = 0; i < dimension; i++) {
+    const diagonalElement = Math.abs(system[i][i]);
+
+    if (diagonalElement == 0) {
+      return false;
+    }
+
+    for (let j = 0, rowSum = 0; j < dimension; j++) {
+      rowSum += (i != j ? Math.abs(system[i][j]):0);
+      if (rowSum >= diagonalElement) { return false; }
+    }
+  }
+
+  return true;
+}
+
+function existDiagonalZeros(matrix) {
+  const dimension = matrix.length;
+
+  for (let i = 0; i < dimension; i++) {
+    if (matrix[i][i] == 0) { return true; }
+  }
+
+  return false;
 }
 
 /**************************************************************************************************
@@ -453,71 +494,75 @@ function luDecomposition(system) {
 
 /**
  * This function used to solve a linear system of equations using Jacobi method
+ * 
  * @param {Array} system
  * @returns {Array|Boolean} 
  */
 
 function jacobiMethod(system) {
-  if (isDiagonallyDominanteMatrix(system) == false) {
+  if (!isStrictlyDiagonallyDominant(system)) {
     return false;
   }
 
   const numberOfRows = system.length;
   const numberOfCols = system[0].length;
-  const diagonalMatrix = new Array(numberOfRows);
-  const reminderMatrix = new Array(numberOfRows);
-  let resultVector = new Array(numberOfRows).fill(0);
+  const resultVector = new Array(numberOfRows).fill(0);
 
-  // Create a diagonal & reminder matrices
-  for (let i = 0; i < numberOfRows; i++) {
-    diagonalMatrix[i] = new Array(numberOfRows);
-    reminderMatrix[i] = new Array(numberOfRows);
+  let iterationsLimit = 1e3;
+  let estimationError = 1e6;
 
-    for (let j = 0; j < numberOfRows; j++) {
-      diagonalMatrix[i][j] = (i == j ? system[i][j] : 0);
-      reminderMatrix[i][j] = (i == j ? 0 : system[i][j]);
-    }
-  }
-
-  let iterationLimit = 1e3 + 1;
-  let estimationError = 1e3;
-
-  while (estimationError >= 1 && iterationLimit--) {
-    const tempResultVector = new Array(numberOfRows);
-    const multiplyedSystemMatrix = multiplyTwoMatrices(reminderMatrix, resultVector);
-
-    // Calculate adjustment
+  while (estimationError >= 1 && iterationsLimit--) {
     for (let i = 0; i < numberOfRows; i++) {
-      tempResultVector[i] = (system[i][numberOfCols - 1] - multiplyedSystemMatrix[i]) / diagonalMatrix[i][i];
-      estimationError = Math.max(estimationError, Math.abs(tempResultVector[i] / resultVector[i]));
+      for (var j = 0, sum = 0; j < numberOfCols - 1; j++) {
+        if (i == j) { continue; }
+        sum += system[i][j] * resultVector[j];
+      }
+
+      const prevResultVector = resultVector[i];
+      resultVector[i] = (system[i][numberOfCols - 1] - sum) / system[i][i];
+      estimationError = Math.abs(resultVector[i] - prevResultVector);
     }
-    
-    resultVector = addTwoMatrices(resultVector, tempResultVector);
   }
 
   return resultVector;
 }
 
+/**************************************************************************************************
+ *                                          Gauss-Seidel method                                   *
+ **************************************************************************************************/
+
 /**
- * Function to check wethere the system matrix is strictlly diagonally dominante
- * @param {Array}
- * @returns {Boolean}
+ * This function solve a linear system of equations using the Gauss-Seidel method which is an extension of the Jacobi method
+ * the function check whether the coefficients matrix is strictly diagonally dominante (while converge)
+ * 
+ * @param {Array} system
+ * @returns {Boolean|Array}
  */
+function gaussSeidelMethod(system) {
+  if (!isStrictlyDiagonallyDominant(system)) {
+    return false;
+  }
 
-function isDiagonallyDominanteMatrix(system) {
-  const dimension = system.length;
+  const numberOfRows = system.length;
+  const numberOfCols = system[0].length;
+  const resultVector = new Array(numberOfRows).fill(0);
 
-  for (let i = 0; i < dimension; i++) {
-    const compared = Math.abs(system[i][i]);
-    var rowSum = 0;
+  let iterationsLimit = 1e3;
+  let estimationError = 1e6;
 
-    for (let j = 0; j < dimension; j++) {
-      rowSum += (i != j ? Math.abs(system[i][j]):0);
-      if (rowSum >= compared) {
-        return false;
+  while (estimationError >= 1 && iterationsLimit--) {
+    for (let i = 0; i < numberOfRows; i++) {
+      for (var j = 0, sum = 0; j < numberOfRows; j++) {
+        if (i == j) { continue; }
+        const product = resultVector[j] * system[i][j];
+        sum += product * (j < i ? -1:1);
       }
+
+      const prevResultVector = resultVector[i];
+      resultVector[i] = (system[i][numberOfCols - 1] - sum) / system[i][i];
+      estimationError = Math.abs(resultVector[i] - prevResultVector);
     }
   }
 
-  return true;
+  return resultVector;
 }
