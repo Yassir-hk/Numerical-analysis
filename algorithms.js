@@ -513,8 +513,10 @@ function jacobiMethod(system) {
 
   while (estimationError >= 1 && iterationsLimit--) {
     for (let i = 0; i < numberOfRows; i++) {
-      for (var j = 0, sum = 0; j < numberOfCols - 1; j++) {
-        if (i == j) { continue; }
+      let sum = 0;
+
+      for (let j = 0; j < numberOfCols - 1; j++) {
+        if (i == j) continue;
         sum += system[i][j] * resultVector[j];
       }
 
@@ -536,8 +538,9 @@ function jacobiMethod(system) {
  * the function check whether the coefficients matrix is strictly diagonally dominante (while converge)
  * 
  * @param {Array} system
- * @returns {Boolean|Array}
+ * @returns {Array|Boolean}
  */
+
 function gaussSeidelMethod(system) {
   if (!isStrictlyDiagonallyDominant(system)) {
     return false;
@@ -552,8 +555,10 @@ function gaussSeidelMethod(system) {
 
   while (estimationError >= 1 && iterationsLimit--) {
     for (let i = 0; i < numberOfRows; i++) {
-      for (var j = 0, sum = 0; j < numberOfRows; j++) {
-        if (i == j) { continue; }
+      let sum = 0;
+
+      for (let j = 0; j < numberOfRows; j++) {
+        if (i == j) continue;
         const product = resultVector[j] * system[i][j];
         sum += product * (j < i ? -1:1);
       }
