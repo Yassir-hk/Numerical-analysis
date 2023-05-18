@@ -509,7 +509,7 @@ function jacobiMethod(system) {
   const resultVector = new Array(numberOfRows).fill(0);
 
   let iterationsLimit = 1e3;
-  let estimationError = 1e6;
+  let estimationError = 1e3;
 
   while (estimationError >= 1 && iterationsLimit--) {
     for (let i = 0; i < numberOfRows; i++) {
@@ -551,7 +551,7 @@ function gaussSeidelMethod(system) {
   const resultVector = new Array(numberOfRows).fill(0);
 
   let iterationsLimit = 1e3;
-  let estimationError = 1e6;
+  let estimationError = 1e3;
 
   while (estimationError >= 1 && iterationsLimit--) {
     for (let i = 0; i < numberOfRows; i++) {
