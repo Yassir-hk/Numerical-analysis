@@ -1,5 +1,5 @@
 /**************************************************************************************************
- *                                                   Handlers                                     *
+ *                                              Handlers                                          *
  **************************************************************************************************/
 
 const regexOpt = /^[+-]$/;
@@ -123,12 +123,12 @@ function fetchSystem() {
     system.push(systemEquation);
   }
 
-  // Check if the number of variables is greater than the number of equations
+  // Check if the number of variables is greater than the number of equations.
   if (variablesOfSystemSet.size > equations.length) {
     return false;
   }
 
-  // Add coefficients with value 0
+  // Add coefficients with value 0.
   const variablesOfSystemArray = [...variablesOfSystemSet].sort();
   const matrixOfSystem = [];
 
@@ -162,7 +162,7 @@ function compute() {
   const system = fetchSystem();
   const computationMethod = parseInt(document.getElementById("computationMethod").value);
 
-  // Case of invalid inputs or invalid system
+  // Case of invalid inputs or invalid system.
   if (system == false) {
     alert("This system cannot be processed");
     return false;
@@ -171,7 +171,7 @@ function compute() {
   const resultVectorContainer = Array.from(document.getElementsByClassName("container-2"));
   resultVectorContainer[0].style.visibility = "visible";
 
-  // Use the selected method
+  // Use the selected method.
   switch (computationMethod) {
     case 1: {
       writeResult(gaussElemination(system[0]), system[1]);
@@ -185,7 +185,7 @@ function compute() {
       writeResult(jacobiMethod(system[0]), system[1]);
       break;
     }
-    case 4:{
+    case 4: {
       writeResult(gaussSeidelMethod(system[0], system[1]));
       break;
     }
@@ -218,11 +218,11 @@ function writeResult(resultVector, variablesOfSystem) {
 }
 
 /**************************************************************************************************
- *                                      Matrice functions                                         *
+ *                                          Matrice functions                                     *
  **************************************************************************************************/
 
 /**
- * Function to multiply two matrices
+ * Function to multiply two matrices.
  * @param {Array} firstMatrix
  * @param {Array} secondMatrix
  * @returns {Array|Boolean}
@@ -253,7 +253,7 @@ function multiplyTwoMatrices(firstMatrix, secondMatrix) {
 }
 
 /**
- * Function to calculate the addition of two matrices
+ * Function to calculate the addition of two matrices.
  * @param {Array} firstMatrix
  * @param {Array} secondMatrix
  * @returns {Array|Boolean}
@@ -280,9 +280,8 @@ function addTwoMatrices(firstMatrix, secondMatrix) {
 }
 
 /**
- * Function to check wethere the system matrix is strictlly diagonally dominante
- * the function check whether the coefficients matrix is strictly diagonally dominante (while converge)
- * 
+ * Function to check wethere the system matrix is strictlly diagonally dominante.
+ * The function check whether the coefficients matrix is strictly diagonally dominante (while converge).
  * @param {Array}
  * @returns {Boolean}
  */
@@ -317,14 +316,13 @@ function existDiagonalZeros(matrix) {
 }
 
 /**************************************************************************************************
- *                                      Gauss elemination                                         *
+ *                                         Gauss elemination                                      *
  **************************************************************************************************/
 
 /**
  * Function is used to solve a system of linear equations using the Gaussian elimination method. 
- * 1) Triangularizing the system
- * 2) solve the system
- * 
+ * 1) Triangularizing the system.
+ * 2) solve the system.
  * @param {Array} system 
  * @returns {Array|Boolean}
  */
@@ -361,7 +359,7 @@ function gaussElemination(system) {
 }
 
 /**
- * Function that solve the upper triangular system
+ * Function that solve the upper triangular system.
  * @param {Array} system
  * @returns {Array|Boolean}
  */
@@ -390,7 +388,7 @@ function upperTriangularSystemSolver(system) {
 }
 
 /**
- * Function that solve the lower triangular system
+ * Function that solve the lower triangular system.
  * @param {Array} system
  * @returns {Array|Boolean}
  */
@@ -419,11 +417,11 @@ function lowerTriangularSystemSolver(system) {
 }
 
 /**************************************************************************************************
- *                                      LU decomposition                                          *
+ *                                           LU decomposition                                     *
  **************************************************************************************************/
 
 /**
- * Function to get the lower and the upper matrices
+ * Function to get the lower and the upper matrices.
  * @param {Array} system
  * @returns {Array | Boolean}
  */
@@ -433,7 +431,7 @@ function luDecomposition(system) {
   const lowerTriangularMatrix = [];
   const upperTriangularMatrix = Array.from(system);
 
-  // Initializing the lower matrix  
+  // Initializing the lower matrix.
   for (let i = 0; i < dimension; i++) {
     const matrixRow = [];
 
@@ -471,8 +469,10 @@ function luDecomposition(system) {
   }
 
   /** 
-   * We know that ax = b, after decompose a into l and u matrices, we get lux = b
-   * Supose that ux = y and ly = b.
+   * We know that AX = b, after decompose A into L and U matrices, we get LUX = b
+   * Supose that UX = y and Ly = b.
+   * Step 1: Solve Ly = b.
+   * Step 2: Solve UX = y.
    */
 
   for (let i = 0; i < dimension; i++) {
@@ -493,8 +493,7 @@ function luDecomposition(system) {
  **************************************************************************************************/
 
 /**
- * This function used to solve a linear system of equations using Jacobi method
- * 
+ * This function used to solve a linear system of equations using Jacobi method.
  * @param {Array} system
  * @returns {Array|Boolean} 
  */
@@ -535,8 +534,7 @@ function jacobiMethod(system) {
 
 /**
  * This function solve a linear system of equations using the Gauss-Seidel method which is an extension of the Jacobi method
- * the function check whether the coefficients matrix is strictly diagonally dominante (while converge)
- * 
+ * the function check whether the coefficients matrix is strictly diagonally dominante (while converge).
  * @param {Array} system
  * @returns {Array|Boolean}
  */
