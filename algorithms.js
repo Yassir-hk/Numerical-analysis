@@ -90,11 +90,10 @@ function fetchSystem() {
   for (let equation of equations) {
     const equationString = equation.value.replace(/\s+/g, '');
 
-    /*
-    if (!isValidEquation(equationString)) {
-      return false;
-    }
-    */
+    // Check if the equation is valid.
+    // if (!isValidEquation(equationString)) {
+    //   return false;
+    // }
 
     const systemEquation = {};
     let coefficient = '', operator = '';
@@ -102,17 +101,21 @@ function fetchSystem() {
     for (let char of equationString) {
       if (regexNum.test(char)) {
         coefficient += char;
-      }
-      else if (regexVar.test(char)) {
-        if (variablesOfSystemSet.has(char) == false) variablesOfSystemSet.add(char);
-        if (!systemEquation[char]) systemEquation[char] = 0;
-        if (coefficient.length == 0) coefficient = '1';
+      } else if (regexVar.test(char)) {
+        if (!variablesOfSystemSet.has(char)) {
+          variablesOfSystemSet.add(char);
+        }
+        if (!systemEquation[char]) {
+          systemEquation[char] = 0;
+        }
+        if (coefficient.length == 0) {
+          coefficient = '1';
+        }
 
         systemEquation[char] += parseFloat(operator + coefficient);
         coefficient = '';
         operator = '';
-      }
-      else if (regexOpt.test(char)) {
+      } else if (regexOpt.test(char)) {
         operator = char;
       }
     }
@@ -123,8 +126,8 @@ function fetchSystem() {
     system.push(systemEquation);
   }
 
-  // Check if the number of variables is greater than the number of equations.
-  if (variablesOfSystemSet.size > equations.length) {
+  // Check if the number of variables equales the number of equations.
+  if (variablesOfSystemSet.size != equations.length) {
     return false;
   }
 
@@ -138,8 +141,7 @@ function fetchSystem() {
     for (let variable of variablesOfSystemArray) {
       if (variable in systemEquation) {
         equationCoefficients.push(systemEquation[variable]);
-      }
-      else {
+      } else {
         equationCoefficients.push(0);
       }
     }
@@ -162,33 +164,29 @@ function compute() {
   const system = fetchSystem();
   const computationMethod = parseInt(document.getElementById("computationMethod").value);
 
-  // Case of invalid inputs or invalid system.
+  // Check if the system is valid.
   if (system == false) {
     alert("This system cannot be processed");
     return false;
   }
 
-  const resultVectorContainer = Array.from(document.getElementsByClassName("container-2"));
-  resultVectorContainer[0].style.visibility = "visible";
+  const resultVectorContainer = document.querySelector(".container-2");
+  resultVectorContainer.style.visibility = "visible";
 
-  // Use the selected method.
+  // Use the selected method to compute the result.
   switch (computationMethod) {
-    case 1: {
+    case 1:
       writeResult(gaussElemination(system[0]), system[1]);
       break;
-    }
-    case 2: {
+    case 2:
       writeResult(luDecomposition(system[0]), system[1]);
       break;
-    }
-    case 3: {
+    case 3:
       writeResult(jacobiMethod(system[0]), system[1]);
       break;
-    }
-    case 4: {
-      writeResult(gaussSeidelMethod(system[0], system[1]));
+    case 4:
+      writeResult(gaussSeidelMethod(system[0]), system[1]);
       break;
-    }
   }
 }
 
@@ -208,17 +206,17 @@ function writeResult(resultVector, variablesOfSystem) {
   }
 
   let resultVectorContent = '';
-  let currentVariable = 0;
+  let currentVariableIndx = 0;
 
   for (let value of resultVector) {
-    resultVectorContent += variablesOfSystem[currentVariable++] + " = " + value + "<br><br>";
+    resultVectorContent += variablesOfSystem[currentVariableIndx++] + " = " + value + "<br><br>";
   }
 
   resultVectorContainer.innerHTML = resultVectorContent;
 }
 
 /**************************************************************************************************
- *                                          Matrice functions                                     *
+ *                                      Matrice functions                                         *
  **************************************************************************************************/
 
 /**
@@ -241,8 +239,6 @@ function multiplyTwoMatrices(firstMatrix, secondMatrix) {
     resultMatrix[i] = new Array(numberOfCols);
 
     for (let j = 0; j < numberOfCols; j++) {
-      let sum = 0;
-
       for (let k = 0; k < numberOfCols; k++) {
         resultMatrix[i][j] += (firstMatrix[i][k] * secondMatrix[k][j]);
       }
@@ -280,8 +276,7 @@ function addTwoMatrices(firstMatrix, secondMatrix) {
 }
 
 /**
- * Function to check wethere the system matrix is strictlly diagonally dominante.
- * The function check whether the coefficients matrix is strictly diagonally dominante (while converge).
+ * Function to check wethere the system matrix is strictlly diagonally dominante 
  * @param {Array}
  * @returns {Boolean}
  */
@@ -298,31 +293,21 @@ function isStrictlyDiagonallyDominant(system) {
 
     for (let j = 0, rowSum = 0; j < dimension; j++) {
       rowSum += (i != j ? Math.abs(system[i][j]):0);
-      if (rowSum >= diagonalElement) { return false; }
+      if (rowSum >= diagonalElement) {
+        return false;
+      }
     }
   }
 
   return true;
 }
 
-function existDiagonalZeros(matrix) {
-  const dimension = matrix.length;
-
-  for (let i = 0; i < dimension; i++) {
-    if (matrix[i][i] == 0) { return true; }
-  }
-
-  return false;
-}
-
 /**************************************************************************************************
- *                                         Gauss elemination                                      *
+ *                                      Gauss elemination                                         *
  **************************************************************************************************/
 
 /**
- * Function is used to solve a system of linear equations using the Gaussian elimination method. 
- * 1) Triangularizing the system.
- * 2) solve the system.
+ * Function is used to solve a system of linear equations using the Gaussian elimination method.  
  * @param {Array} system 
  * @returns {Array|Boolean}
  */
@@ -331,7 +316,7 @@ function gaussElemination(system) {
   const numberOfRows = system.length;
   const numberOfCols = system[0].length;
 
-  // Triangularization of the system
+  // Triangularization of the system.
   for (let i = 0; i < numberOfRows; i++) {
     let pivotIndex = i;
 
@@ -341,8 +326,7 @@ function gaussElemination(system) {
 
     if (pivotIndex < numberOfRows && pivotIndex != i) {
       [system[pivotIndex], system[i]] = [system[i], system[pivotIndex]];
-    }
-    else if (pivotIndex == numberOfRows) {
+    } else if (pivotIndex == numberOfRows) {
       continue;
     }
 
@@ -417,7 +401,7 @@ function lowerTriangularSystemSolver(system) {
 }
 
 /**************************************************************************************************
- *                                           LU decomposition                                     *
+ *                                        LU decomposition                                        *
  **************************************************************************************************/
 
 /**
@@ -431,7 +415,7 @@ function luDecomposition(system) {
   const lowerTriangularMatrix = [];
   const upperTriangularMatrix = Array.from(system);
 
-  // Initializing the lower matrix.
+  // Initializing the lower matrix.  
   for (let i = 0; i < dimension; i++) {
     const matrixRow = [];
 
@@ -451,8 +435,7 @@ function luDecomposition(system) {
 
     if (pivotIndex < dimension && pivotIndex != i) {
       [upperTriangularMatrix[pivotIndex], upperTriangularMatrix[i]] = [upperTriangularMatrix[i], upperTriangularMatrix[pivotIndex]];
-    }
-    else if (pivotIndex == dimension) {
+    } else if (pivotIndex == dimension) {
       continue;
     }
 
@@ -469,10 +452,10 @@ function luDecomposition(system) {
   }
 
   /** 
-   * We know that AX = b, after decompose A into L and U matrices, we get LUX = b
-   * Supose that UX = y and Ly = b.
-   * Step 1: Solve Ly = b.
-   * Step 2: Solve UX = y.
+   * We know that Ax = b, after decompose A into L and U matrices, we get LUx = b.
+   * Supose that Ux = y and Ly = b.
+   * Step 1: solve Ly = b.
+   * Step 2: solve Ux = y.
    */
 
   for (let i = 0; i < dimension; i++) {
@@ -515,7 +498,9 @@ function jacobiMethod(system) {
       let sum = 0;
 
       for (let j = 0; j < numberOfCols - 1; j++) {
-        if (i == j) continue;
+        if (i == j) {
+          continue;
+        }
         sum += system[i][j] * resultVector[j];
       }
 
@@ -533,8 +518,7 @@ function jacobiMethod(system) {
  **************************************************************************************************/
 
 /**
- * This function solve a linear system of equations using the Gauss-Seidel method which is an extension of the Jacobi method
- * the function check whether the coefficients matrix is strictly diagonally dominante (while converge).
+ * This function solve a linear system of equations using the Gauss-Seidel method which is an extension of the Jacobi method.
  * @param {Array} system
  * @returns {Array|Boolean}
  */
@@ -556,7 +540,9 @@ function gaussSeidelMethod(system) {
       let sum = 0;
 
       for (let j = 0; j < numberOfRows; j++) {
-        if (i == j) continue;
+        if (i == j) {
+          continue;
+        }
         const product = resultVector[j] * system[i][j];
         sum += product * (j < i ? -1:1);
       }
