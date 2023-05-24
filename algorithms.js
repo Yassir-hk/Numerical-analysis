@@ -157,7 +157,7 @@ function fetchSystem() {
 
 /**
  * Function that process the input equations and use the selected method to provide the resultVector.
- * @returns {Boolean|void}
+ * @returns {Boolean | void}
  */
 
 function compute() {
