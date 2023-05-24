@@ -8,7 +8,7 @@ const regexVar = /^[a-zA-Z]+$/;
 
 /**
  * Function to change the number of equations.
- * @param {Number|Boolean} increment
+ * @param {Number | Boolean} increment
  */
 
 function changeEquationNumber(increment) {
