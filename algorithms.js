@@ -79,7 +79,7 @@ function isValidEquation(equation) {
 
 /**
  * Function to verity the equations input.
- * @returns {Array|boolean}
+ * @returns {Array | boolean}
  */
 
 function fetchSystem() {
@@ -223,7 +223,7 @@ function writeResult(resultVector, variablesOfSystem) {
  * Function to multiply two matrices.
  * @param {Array} firstMatrix
  * @param {Array} secondMatrix
- * @returns {Array|Boolean}
+ * @returns {Array | Boolean}
  */
 
 function multiplyTwoMatrices(firstMatrix, secondMatrix) {
@@ -252,7 +252,7 @@ function multiplyTwoMatrices(firstMatrix, secondMatrix) {
  * Function to calculate the addition of two matrices.
  * @param {Array} firstMatrix
  * @param {Array} secondMatrix
- * @returns {Array|Boolean}
+ * @returns {Array | Boolean}
  */
 
 function addTwoMatrices(firstMatrix, secondMatrix) {
@@ -309,7 +309,7 @@ function isStrictlyDiagonallyDominant(system) {
 /**
  * Function is used to solve a system of linear equations using the Gaussian elimination method.  
  * @param {Array} system 
- * @returns {Array|Boolean}
+ * @returns {Array | Boolean}
  */
 
 function gaussElemination(system) {
@@ -345,7 +345,7 @@ function gaussElemination(system) {
 /**
  * Function that solve the upper triangular system.
  * @param {Array} system
- * @returns {Array|Boolean}
+ * @returns {Array | Boolean}
  */
 
 function upperTriangularSystemSolver(system) {
@@ -374,7 +374,7 @@ function upperTriangularSystemSolver(system) {
 /**
  * Function that solve the lower triangular system.
  * @param {Array} system
- * @returns {Array|Boolean}
+ * @returns {Array | Boolean}
  */
 
 function lowerTriangularSystemSolver(system) {
@@ -478,7 +478,7 @@ function luDecomposition(system) {
 /**
  * This function used to solve a linear system of equations using Jacobi method.
  * @param {Array} system
- * @returns {Array|Boolean} 
+ * @returns {Array | Boolean} 
  */
 
 function jacobiMethod(system) {
@@ -520,7 +520,7 @@ function jacobiMethod(system) {
 /**
  * This function solve a linear system of equations using the Gauss-Seidel method which is an extension of the Jacobi method.
  * @param {Array} system
- * @returns {Array|Boolean}
+ * @returns {Array | Boolean}
  */
 
 function gaussSeidelMethod(system) {
